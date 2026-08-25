@@ -350,6 +350,9 @@ export const PersonFormModal: React.FC<PersonFormModalProps> = ({
                   placeholder="Ex: Henri"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
+                  autoComplete="off"
+                  autoCorrect="off"
+                  spellCheck="false"
                   className="w-full bg-white border border-[#D9D2C2] text-[#2D2926] px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#8C7B6B]"
                 />
               </div>
@@ -362,6 +365,9 @@ export const PersonFormModal: React.FC<PersonFormModalProps> = ({
                   placeholder="Ex: Dupont"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
+                  autoComplete="off"
+                  autoCorrect="off"
+                  spellCheck="false"
                   className="w-full bg-white border border-[#D9D2C2] text-[#2D2926] px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#8C7B6B]"
                 />
               </div>
@@ -373,6 +379,9 @@ export const PersonFormModal: React.FC<PersonFormModalProps> = ({
                   placeholder="Ex: Bernard"
                   value={maidenName}
                   onChange={(e) => setMaidenName(e.target.value)}
+                  autoComplete="off"
+                  autoCorrect="off"
+                  spellCheck="false"
                   className="w-full bg-white border border-[#D9D2C2] text-[#2D2926] px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#8C7B6B]"
                 />
               </div>
