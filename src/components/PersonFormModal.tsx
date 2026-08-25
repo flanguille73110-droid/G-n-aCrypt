@@ -24,7 +24,7 @@ export const PersonFormModal: React.FC<PersonFormModalProps> = ({
   allPersons,
   presetRelation,
 }) => {
-  const [firstName, setFirstName] = useState('');
+  const [firstNames, setFirstNames] = useState<string[]>(['']);
   const [lastName, setLastName] = useState('');
   const [maidenName, setMaidenName] = useState('');
   const [gender, setGender] = useState<Gender>('M');
@@ -111,7 +111,14 @@ export const PersonFormModal: React.FC<PersonFormModalProps> = ({
 
   useEffect(() => {
     if (personToEdit) {
-      setFirstName(personToEdit.firstName || '');
+      const rawFirst = personToEdit.firstName || '';
+      let parsedNames: string[] = [];
+      if (rawFirst.includes(',')) {
+        parsedNames = rawFirst.split(',').map(s => s.trim()).filter(Boolean);
+      } else {
+        parsedNames = rawFirst.split(' ').map(s => s.trim()).filter(Boolean);
+      }
+      setFirstNames(parsedNames.length > 0 ? parsedNames : ['']);
       setLastName(personToEdit.lastName || '');
       setMaidenName(personToEdit.maidenName || '');
       setGender(personToEdit.gender || 'M');
@@ -148,7 +155,7 @@ export const PersonFormModal: React.FC<PersonFormModalProps> = ({
       setWillsLocation(personToEdit.successionInfo?.willsLocation || '');
     } else {
       // Reset defaults
-      setFirstName('');
+      setFirstNames(['']);
       setLastName(presetRelation?.targetPerson.lastName || '');
       setMaidenName('');
       setGender('M');
@@ -241,7 +248,7 @@ export const PersonFormModal: React.FC<PersonFormModalProps> = ({
 
     const updatedPerson: Person = {
       id: personToEdit ? personToEdit.id : `p-${Date.now()}`,
-      firstName: firstName.trim(),
+      firstName: firstNames.map(f => f.trim()).filter(Boolean).join(', '),
       lastName: lastName.trim(),
       maidenName: maidenName.trim() || undefined,
       gender,
@@ -342,19 +349,48 @@ export const PersonFormModal: React.FC<PersonFormModalProps> = ({
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div>
-                <label className="block text-[#8C7B6B] font-bold uppercase mb-1">Prénom *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ex: Henri"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  autoComplete="off"
-                  autoCorrect="off"
-                  spellCheck="false"
-                  className="w-full bg-white border border-[#D9D2C2] text-[#2D2926] px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#8C7B6B]"
-                />
+              <div className="space-y-2">
+                <label className="block text-[#8C7B6B] font-bold uppercase">Prénom(s) *</label>
+                <div className="space-y-1.5">
+                  {firstNames.map((name, index) => (
+                    <div key={index} className="flex gap-1.5 items-center">
+                      <input
+                        type="text"
+                        required={index === 0}
+                        placeholder={index === 0 ? "Ex: Henri" : "Autre prénom"}
+                        value={name}
+                        onChange={(e) => {
+                          const newNames = [...firstNames];
+                          newNames[index] = e.target.value;
+                          setFirstNames(newNames);
+                        }}
+                        autoComplete="off"
+                        autoCorrect="off"
+                        spellCheck="false"
+                        className="w-full bg-white border border-[#D9D2C2] text-[#2D2926] px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-[#8C7B6B]"
+                      />
+                      {firstNames.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFirstNames(firstNames.filter((_, i) => i !== index));
+                          }}
+                          className="text-red-500 hover:text-red-700 p-1.5 border border-[#D9D2C2] bg-stone-50 hover:bg-stone-100 shrink-0"
+                          title="Supprimer ce prénom"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setFirstNames([...firstNames, ''])}
+                    className="text-[#8C7B6B] hover:text-[#5C4D3F] font-bold text-[10px] uppercase tracking-wider flex items-center gap-1 mt-1 border border-dashed border-[#D9D2C2] px-2 py-1 bg-stone-50 hover:bg-stone-100 w-full justify-center transition-colors"
+                  >
+                    <Plus className="h-3 w-3" /> Ajouter un autre prénom
+                  </button>
+                </div>
               </div>
 
               <div>
