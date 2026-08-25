@@ -1,0 +1,6 @@
+{
+  "name": "GénéaCrypt - Arbre Généalogique Sécurisé",
+  "description": "Application complète de gestion d'arbre généalogique chiffré en AES-256 avec visualisation interactive, carte, timeline, galerie d'actes et succession.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
