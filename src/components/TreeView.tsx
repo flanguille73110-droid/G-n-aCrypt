@@ -1,6 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, createContext, useContext } from 'react';
 import { Person, BranchType } from '../types';
 import { getLifespanText, getSiblings, getUnionTypeIcon, getUnionTypeLabel } from '../utils/genealogy';
+
+const PersonsContext = createContext<Person[]>([]);
+export const usePersonsContext = () => useContext(PersonsContext);
 import { 
   ZoomIn, 
   ZoomOut, 
@@ -96,6 +99,38 @@ export const TreeView: React.FC<TreeViewProps> = ({
   const maternalGrandfather = mother?.fatherId ? persons.find(p => p.id === mother.fatherId && p.showOnTree !== false) : null;
   const maternalGrandmother = mother?.motherId ? persons.find(p => p.id === mother.motherId && p.showOnTree !== false) : null;
 
+  // Level +3: Arrière-grands-parents (Parents des grands-parents)
+  const ppp = paternalGrandfather?.fatherId ? persons.find(p => p.id === paternalGrandfather.fatherId && p.showOnTree !== false) : null;
+  const ppm = paternalGrandfather?.motherId ? persons.find(p => p.id === paternalGrandfather.motherId && p.showOnTree !== false) : null;
+  const pmp = paternalGrandmother?.fatherId ? persons.find(p => p.id === paternalGrandmother.fatherId && p.showOnTree !== false) : null;
+  const pmm = paternalGrandmother?.motherId ? persons.find(p => p.id === paternalGrandmother.motherId && p.showOnTree !== false) : null;
+
+  const mpp = maternalGrandfather?.fatherId ? persons.find(p => p.id === maternalGrandfather.fatherId && p.showOnTree !== false) : null;
+  const mpm = maternalGrandfather?.motherId ? persons.find(p => p.id === maternalGrandfather.motherId && p.showOnTree !== false) : null;
+  const mmp = maternalGrandmother?.fatherId ? persons.find(p => p.id === maternalGrandmother.fatherId && p.showOnTree !== false) : null;
+  const mmm = maternalGrandmother?.motherId ? persons.find(p => p.id === maternalGrandmother.motherId && p.showOnTree !== false) : null;
+
+  // Level +4: Arrière-arrière-grands-parents (Parents des arrière-grands-parents)
+  const pppFather = ppp?.fatherId ? persons.find(p => p.id === ppp.fatherId && p.showOnTree !== false) : null;
+  const pppMother = ppp?.motherId ? persons.find(p => p.id === ppp.motherId && p.showOnTree !== false) : null;
+  const ppmFather = ppm?.fatherId ? persons.find(p => p.id === ppm.fatherId && p.showOnTree !== false) : null;
+  const ppmMother = ppm?.motherId ? persons.find(p => p.id === ppm.motherId && p.showOnTree !== false) : null;
+
+  const pmpFather = pmp?.fatherId ? persons.find(p => p.id === pmp.fatherId && p.showOnTree !== false) : null;
+  const pmpMother = pmp?.motherId ? persons.find(p => p.id === pmp.motherId && p.showOnTree !== false) : null;
+  const pmmFather = pmm?.fatherId ? persons.find(p => p.id === pmm.fatherId && p.showOnTree !== false) : null;
+  const pmmMother = pmm?.motherId ? persons.find(p => p.id === pmm.motherId && p.showOnTree !== false) : null;
+
+  const mppFather = mpp?.fatherId ? persons.find(p => p.id === mpp.fatherId && p.showOnTree !== false) : null;
+  const mppMother = mpp?.motherId ? persons.find(p => p.id === mpp.motherId && p.showOnTree !== false) : null;
+  const mpmFather = mpm?.fatherId ? persons.find(p => p.id === mpm.fatherId && p.showOnTree !== false) : null;
+  const mpmMother = mpm?.motherId ? persons.find(p => p.id === mpm.motherId && p.showOnTree !== false) : null;
+
+  const mmpFather = mmp?.fatherId ? persons.find(p => p.id === mmp.fatherId && p.showOnTree !== false) : null;
+  const mmpMother = mmp?.motherId ? persons.find(p => p.id === mmp.motherId && p.showOnTree !== false) : null;
+  const mmmFather = mmm?.fatherId ? persons.find(p => p.id === mmm.fatherId && p.showOnTree !== false) : null;
+  const mmmMother = mmm?.motherId ? persons.find(p => p.id === mmm.motherId && p.showOnTree !== false) : null;
+
   // Root's children
   const directChildren = useMemo(() => {
     if (!rootPerson) return [];
@@ -135,7 +170,8 @@ export const TreeView: React.FC<TreeViewProps> = ({
   }
 
   return (
-    <div className="relative min-h-[calc(100vh-130px)] bg-[#F9F6F0] text-[#2D2926] flex flex-col overflow-hidden font-sans">
+    <PersonsContext.Provider value={persons}>
+      <div className="relative min-h-[calc(100vh-130px)] bg-[#F9F6F0] text-[#2D2926] flex flex-col overflow-hidden font-sans">
       
       {/* Controls Bar */}
       <div className="bg-[#EFE9DB] border-b border-[#D9D2C2] px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs z-10 shadow-xs">
@@ -227,60 +263,456 @@ export const TreeView: React.FC<TreeViewProps> = ({
               {(viewMode === 'pedigree' || viewMode === 'ancestors') && (
                 <div className="flex flex-col items-center w-full mb-6">
                   
-                  {/* Generation -2: Grandparents */}
-                  <div className="flex items-center space-x-12 sm:space-x-16">
-                    {/* Paternal Grandparents */}
+                  {/* Generation -2 to -4: Ancestors */}
+                  <div className="flex items-end space-x-12 sm:space-x-16">
+                    {/* Paternal Side */}
                     <div className="flex flex-col items-center">
-                      <span className="text-[9px] uppercase font-bold text-[#8C7B6B] mb-1">Côté Paternelle</span>
-                      <div className="flex items-center space-x-3">
-                        <CompactPersonCard
-                          person={paternalGrandfather}
-                          roleLabel="Grand-Père"
-                          onFocus={(p) => setFocusedPersonId(p.id)}
-                          onSelect={onSelectPerson}
-                          onAddRelative={father ? () => onAddRelative(father, 'father') : undefined}
-                          emptyLabel="Grand-Père P."
-                        />
-                        <CompactPersonCard
-                          person={paternalGrandmother}
-                          roleLabel="Grand-Mère"
-                          onFocus={(p) => setFocusedPersonId(p.id)}
-                          onSelect={onSelectPerson}
-                          onAddRelative={father ? () => onAddRelative(father, 'mother') : undefined}
-                          emptyLabel="Grand-Mère P."
-                        />
+                      <span className="text-[10px] uppercase font-bold tracking-widest text-[#8C7B6B] mb-3 bg-[#EFE9DB] px-3 py-0.5 border border-[#D9D2C2] rounded-xs shadow-3xs">Branche Paternelle</span>
+                      <div className="flex items-end space-x-8 sm:space-x-12">
+                        {/* Paternal Grandfather Subtree */}
+                        <div className="flex flex-col items-center">
+                          {/* Level +4 (Arrière-arrière-grands-parents for PPP) */}
+                          {(ppp || ppm) && (
+                            <div className="flex space-x-2 mb-2">
+                              {ppp ? (
+                                <div className="flex flex-col items-center">
+                                  <div className="flex space-x-1">
+                                    <CompactPersonCard
+                                      person={pppFather}
+                                      roleLabel="A-A-Grand-Père"
+                                      onFocus={(p) => setFocusedPersonId(p.id)}
+                                      onSelect={onSelectPerson}
+                                      onAddRelative={() => onAddRelative(ppp, 'father')}
+                                      emptyLabel="A-A-G-Père (PPP)"
+                                    />
+                                    <CompactPersonCard
+                                      person={pppMother}
+                                      roleLabel="A-A-Grand-Mère"
+                                      onFocus={(p) => setFocusedPersonId(p.id)}
+                                      onSelect={onSelectPerson}
+                                      onAddRelative={() => onAddRelative(ppp, 'mother')}
+                                      emptyLabel="A-A-G-Mère (PPM)"
+                                    />
+                                  </div>
+                                  <div className="w-full flex justify-center h-4 relative mt-0.5">
+                                    <div className="w-1/2 border-l border-b border-[#8C7B6B] h-full" />
+                                    <div className="w-1/2 border-r border-b border-[#8C7B6B] h-full" />
+                                  </div>
+                                  <div className="w-0.5 h-1.5 bg-[#8C7B6B]" />
+                                </div>
+                              ) : (
+                                <div className="w-20" />
+                              )}
+
+                              {ppm ? (
+                                <div className="flex flex-col items-center">
+                                  <div className="flex space-x-1">
+                                    <CompactPersonCard
+                                      person={ppmFather}
+                                      roleLabel="A-A-Grand-Père"
+                                      onFocus={(p) => setFocusedPersonId(p.id)}
+                                      onSelect={onSelectPerson}
+                                      onAddRelative={() => onAddRelative(ppm, 'father')}
+                                      emptyLabel="A-A-G-Père (PMP)"
+                                    />
+                                    <CompactPersonCard
+                                      person={ppmMother}
+                                      roleLabel="A-A-Grand-Mère"
+                                      onFocus={(p) => setFocusedPersonId(p.id)}
+                                      onSelect={onSelectPerson}
+                                      onAddRelative={() => onAddRelative(ppm, 'mother')}
+                                      emptyLabel="A-A-G-Mère (PMM)"
+                                    />
+                                  </div>
+                                  <div className="w-full flex justify-center h-4 relative mt-0.5">
+                                    <div className="w-1/2 border-l border-b border-[#8C7B6B] h-full" />
+                                    <div className="w-1/2 border-r border-b border-[#8C7B6B] h-full" />
+                                  </div>
+                                  <div className="w-0.5 h-1.5 bg-[#8C7B6B]" />
+                                </div>
+                              ) : (
+                                <div className="w-20" />
+                              )}
+                            </div>
+                          )}
+
+                          {/* Level +3 (Arrière-grands-parents for Paternal Grandfather) */}
+                          {paternalGrandfather && (
+                            <div className="flex flex-col items-center">
+                              <div className="flex space-x-2">
+                                <CompactPersonCard
+                                  person={ppp}
+                                  roleLabel="A-Grand-Père"
+                                  onFocus={(p) => setFocusedPersonId(p.id)}
+                                  onSelect={onSelectPerson}
+                                  onAddRelative={() => onAddRelative(paternalGrandfather, 'father')}
+                                  emptyLabel="A-Grand-Père (PP)"
+                                />
+                                <CompactPersonCard
+                                  person={ppm}
+                                  roleLabel="A-Grand-Mère"
+                                  onFocus={(p) => setFocusedPersonId(p.id)}
+                                  onSelect={onSelectPerson}
+                                  onAddRelative={() => onAddRelative(paternalGrandfather, 'mother')}
+                                  emptyLabel="A-Grand-Mère (PM)"
+                                />
+                              </div>
+                              <div className="w-full flex justify-center h-4 relative mt-0.5">
+                                <div className="w-1/2 border-l border-b border-[#8C7B6B] h-full" />
+                                <div className="w-1/2 border-r border-b border-[#8C7B6B] h-full" />
+                              </div>
+                              <div className="w-0.5 h-1.5 bg-[#8C7B6B]" />
+                            </div>
+                          )}
+
+                          {/* Level +2 (Paternal Grandfather) */}
+                          <CompactPersonCard
+                            person={paternalGrandfather}
+                            roleLabel="Grand-Père Pat."
+                            onFocus={(p) => setFocusedPersonId(p.id)}
+                            onSelect={onSelectPerson}
+                            onAddRelative={father ? () => onAddRelative(father, 'father') : undefined}
+                            emptyLabel="Grand-Père P."
+                          />
+                        </div>
+
+                        {/* Paternal Grandmother Subtree */}
+                        <div className="flex flex-col items-center">
+                          {/* Level +4 (Arrière-arrière-grands-parents for PMP) */}
+                          {(pmp || pmm) && (
+                            <div className="flex space-x-2 mb-2">
+                              {pmp ? (
+                                <div className="flex flex-col items-center">
+                                  <div className="flex space-x-1">
+                                    <CompactPersonCard
+                                      person={pmpFather}
+                                      roleLabel="A-A-Grand-Père"
+                                      onFocus={(p) => setFocusedPersonId(p.id)}
+                                      onSelect={onSelectPerson}
+                                      onAddRelative={() => onAddRelative(pmp, 'father')}
+                                      emptyLabel="A-A-G-Père"
+                                    />
+                                    <CompactPersonCard
+                                      person={pmpMother}
+                                      roleLabel="A-A-Grand-Mère"
+                                      onFocus={(p) => setFocusedPersonId(p.id)}
+                                      onSelect={onSelectPerson}
+                                      onAddRelative={() => onAddRelative(pmp, 'mother')}
+                                      emptyLabel="A-A-G-Mère"
+                                    />
+                                  </div>
+                                  <div className="w-full flex justify-center h-4 relative mt-0.5">
+                                    <div className="w-1/2 border-l border-b border-[#8C7B6B] h-full" />
+                                    <div className="w-1/2 border-r border-b border-[#8C7B6B] h-full" />
+                                  </div>
+                                  <div className="w-0.5 h-1.5 bg-[#8C7B6B]" />
+                                </div>
+                              ) : (
+                                <div className="w-20" />
+                              )}
+
+                              {pmm ? (
+                                <div className="flex flex-col items-center">
+                                  <div className="flex space-x-1">
+                                    <CompactPersonCard
+                                      person={pmmFather}
+                                      roleLabel="A-A-Grand-Père"
+                                      onFocus={(p) => setFocusedPersonId(p.id)}
+                                      onSelect={onSelectPerson}
+                                      onAddRelative={() => onAddRelative(pmm, 'father')}
+                                      emptyLabel="A-A-G-Père"
+                                    />
+                                    <CompactPersonCard
+                                      person={pmmMother}
+                                      roleLabel="A-A-Grand-Mère"
+                                      onFocus={(p) => setFocusedPersonId(p.id)}
+                                      onSelect={onSelectPerson}
+                                      onAddRelative={() => onAddRelative(pmm, 'mother')}
+                                      emptyLabel="A-A-G-Mère"
+                                    />
+                                  </div>
+                                  <div className="w-full flex justify-center h-4 relative mt-0.5">
+                                    <div className="w-1/2 border-l border-b border-[#8C7B6B] h-full" />
+                                    <div className="w-1/2 border-r border-b border-[#8C7B6B] h-full" />
+                                  </div>
+                                  <div className="w-0.5 h-1.5 bg-[#8C7B6B]" />
+                                </div>
+                              ) : (
+                                <div className="w-20" />
+                              )}
+                            </div>
+                          )}
+
+                          {/* Level +3 (Arrière-grands-parents for Paternal Grandmother) */}
+                          {paternalGrandmother && (
+                            <div className="flex flex-col items-center">
+                              <div className="flex space-x-2">
+                                <CompactPersonCard
+                                  person={pmp}
+                                  roleLabel="A-Grand-Père"
+                                  onFocus={(p) => setFocusedPersonId(p.id)}
+                                  onSelect={onSelectPerson}
+                                  onAddRelative={() => onAddRelative(paternalGrandmother, 'father')}
+                                  emptyLabel="A-Grand-Père (MP)"
+                                />
+                                <CompactPersonCard
+                                  person={pmm}
+                                  roleLabel="A-Grand-Mère"
+                                  onFocus={(p) => setFocusedPersonId(p.id)}
+                                  onSelect={onSelectPerson}
+                                  onAddRelative={() => onAddRelative(paternalGrandmother, 'mother')}
+                                  emptyLabel="A-Grand-Mère (MM)"
+                                />
+                              </div>
+                              <div className="w-full flex justify-center h-4 relative mt-0.5">
+                                <div className="w-1/2 border-l border-b border-[#8C7B6B] h-full" />
+                                <div className="w-1/2 border-r border-b border-[#8C7B6B] h-full" />
+                              </div>
+                              <div className="w-0.5 h-1.5 bg-[#8C7B6B]" />
+                            </div>
+                          )}
+
+                          {/* Level +2 (Paternal Grandmother) */}
+                          <CompactPersonCard
+                            person={paternalGrandmother}
+                            roleLabel="Grand-Mère Pat."
+                            onFocus={(p) => setFocusedPersonId(p.id)}
+                            onSelect={onSelectPerson}
+                            onAddRelative={father ? () => onAddRelative(father, 'mother') : undefined}
+                            emptyLabel="Grand-Mère P."
+                          />
+                        </div>
                       </div>
+
                       {/* Lines down to Father */}
-                      <div className="w-full flex justify-center h-5 relative mt-1">
+                      <div className="w-full flex justify-center h-5 relative mt-2">
                         <div className="w-1/2 border-l-2 border-b-2 border-[#8C7B6B] h-full" />
                         <div className="w-1/2 border-r-2 border-b-2 border-[#8C7B6B] h-full" />
                       </div>
                       <div className="w-0.5 h-4 bg-[#8C7B6B]" />
                     </div>
 
-                    {/* Maternal Grandparents */}
+                    {/* Maternal Side */}
                     <div className="flex flex-col items-center">
-                      <span className="text-[9px] uppercase font-bold text-[#8C7B6B] mb-1">Côté Maternelle</span>
-                      <div className="flex items-center space-x-3">
-                        <CompactPersonCard
-                          person={maternalGrandfather}
-                          roleLabel="Grand-Père"
-                          onFocus={(p) => setFocusedPersonId(p.id)}
-                          onSelect={onSelectPerson}
-                          onAddRelative={mother ? () => onAddRelative(mother, 'father') : undefined}
-                          emptyLabel="Grand-Père M."
-                        />
-                        <CompactPersonCard
-                          person={maternalGrandmother}
-                          roleLabel="Grand-Mère"
-                          onFocus={(p) => setFocusedPersonId(p.id)}
-                          onSelect={onSelectPerson}
-                          onAddRelative={mother ? () => onAddRelative(mother, 'mother') : undefined}
-                          emptyLabel="Grand-Mère M."
-                        />
+                      <span className="text-[10px] uppercase font-bold tracking-widest text-[#8C7B6B] mb-3 bg-[#EFE9DB] px-3 py-0.5 border border-[#D9D2C2] rounded-xs shadow-3xs">Branche Maternelle</span>
+                      <div className="flex items-end space-x-8 sm:space-x-12">
+                        {/* Maternal Grandfather Subtree */}
+                        <div className="flex flex-col items-center">
+                          {/* Level +4 (Arrière-arrière-grands-parents for MPP) */}
+                          {(mpp || mpm) && (
+                            <div className="flex space-x-2 mb-2">
+                              {mpp ? (
+                                <div className="flex flex-col items-center">
+                                  <div className="flex space-x-1">
+                                    <CompactPersonCard
+                                      person={mppFather}
+                                      roleLabel="A-A-Grand-Père"
+                                      onFocus={(p) => setFocusedPersonId(p.id)}
+                                      onSelect={onSelectPerson}
+                                      onAddRelative={() => onAddRelative(mpp, 'father')}
+                                      emptyLabel="A-A-G-Père"
+                                    />
+                                    <CompactPersonCard
+                                      person={mppMother}
+                                      roleLabel="A-A-Grand-Mère"
+                                      onFocus={(p) => setFocusedPersonId(p.id)}
+                                      onSelect={onSelectPerson}
+                                      onAddRelative={() => onAddRelative(mpp, 'mother')}
+                                      emptyLabel="A-A-G-Mère"
+                                    />
+                                  </div>
+                                  <div className="w-full flex justify-center h-4 relative mt-0.5">
+                                    <div className="w-1/2 border-l border-b border-[#8C7B6B] h-full" />
+                                    <div className="w-1/2 border-r border-b border-[#8C7B6B] h-full" />
+                                  </div>
+                                  <div className="w-0.5 h-1.5 bg-[#8C7B6B]" />
+                                </div>
+                              ) : (
+                                <div className="w-20" />
+                              )}
+
+                              {mpm ? (
+                                <div className="flex flex-col items-center">
+                                  <div className="flex space-x-1">
+                                    <CompactPersonCard
+                                      person={mpmFather}
+                                      roleLabel="A-A-Grand-Père"
+                                      onFocus={(p) => setFocusedPersonId(p.id)}
+                                      onSelect={onSelectPerson}
+                                      onAddRelative={() => onAddRelative(mpm, 'father')}
+                                      emptyLabel="A-A-G-Père"
+                                    />
+                                    <CompactPersonCard
+                                      person={mpmMother}
+                                      roleLabel="A-A-Grand-Mère"
+                                      onFocus={(p) => setFocusedPersonId(p.id)}
+                                      onSelect={onSelectPerson}
+                                      onAddRelative={() => onAddRelative(mpm, 'mother')}
+                                      emptyLabel="A-A-G-Mère"
+                                    />
+                                  </div>
+                                  <div className="w-full flex justify-center h-4 relative mt-0.5">
+                                    <div className="w-1/2 border-l border-b border-[#8C7B6B] h-full" />
+                                    <div className="w-1/2 border-r border-b border-[#8C7B6B] h-full" />
+                                  </div>
+                                  <div className="w-0.5 h-1.5 bg-[#8C7B6B]" />
+                                </div>
+                              ) : (
+                                <div className="w-20" />
+                              )}
+                            </div>
+                          )}
+
+                          {/* Level +3 (Arrière-grands-parents for Maternal Grandfather) */}
+                          {maternalGrandfather && (
+                            <div className="flex flex-col items-center">
+                              <div className="flex space-x-2">
+                                <CompactPersonCard
+                                  person={mpp}
+                                  roleLabel="A-Grand-Père"
+                                  onFocus={(p) => setFocusedPersonId(p.id)}
+                                  onSelect={onSelectPerson}
+                                  onAddRelative={() => onAddRelative(maternalGrandfather, 'father')}
+                                  emptyLabel="A-Grand-Père"
+                                />
+                                <CompactPersonCard
+                                  person={mpm}
+                                  roleLabel="A-Grand-Mère"
+                                  onFocus={(p) => setFocusedPersonId(p.id)}
+                                  onSelect={onSelectPerson}
+                                  onAddRelative={() => onAddRelative(maternalGrandfather, 'mother')}
+                                  emptyLabel="A-Grand-Mère"
+                                />
+                              </div>
+                              <div className="w-full flex justify-center h-4 relative mt-0.5">
+                                <div className="w-1/2 border-l border-b border-[#8C7B6B] h-full" />
+                                <div className="w-1/2 border-r border-b border-[#8C7B6B] h-full" />
+                              </div>
+                              <div className="w-0.5 h-1.5 bg-[#8C7B6B]" />
+                            </div>
+                          )}
+
+                          {/* Level +2 (Maternal Grandfather) */}
+                          <CompactPersonCard
+                            person={maternalGrandfather}
+                            roleLabel="Grand-Père Mat."
+                            onFocus={(p) => setFocusedPersonId(p.id)}
+                            onSelect={onSelectPerson}
+                            onAddRelative={mother ? () => onAddRelative(mother, 'father') : undefined}
+                            emptyLabel="Grand-Père M."
+                          />
+                        </div>
+
+                        {/* Maternal Grandmother Subtree */}
+                        <div className="flex flex-col items-center">
+                          {/* Level +4 (Arrière-arrière-grands-parents for MMP) */}
+                          {(mmp || mmm) && (
+                            <div className="flex space-x-2 mb-2">
+                              {mmp ? (
+                                <div className="flex flex-col items-center">
+                                  <div className="flex space-x-1">
+                                    <CompactPersonCard
+                                      person={mmpFather}
+                                      roleLabel="A-A-Grand-Père"
+                                      onFocus={(p) => setFocusedPersonId(p.id)}
+                                      onSelect={onSelectPerson}
+                                      onAddRelative={() => onAddRelative(mmp, 'father')}
+                                      emptyLabel="A-A-G-Père"
+                                    />
+                                    <CompactPersonCard
+                                      person={mmpMother}
+                                      roleLabel="A-A-Grand-Mère"
+                                      onFocus={(p) => setFocusedPersonId(p.id)}
+                                      onSelect={onSelectPerson}
+                                      onAddRelative={() => onAddRelative(mmp, 'mother')}
+                                      emptyLabel="A-A-G-Mère"
+                                    />
+                                  </div>
+                                  <div className="w-full flex justify-center h-4 relative mt-0.5">
+                                    <div className="w-1/2 border-l border-b border-[#8C7B6B] h-full" />
+                                    <div className="w-1/2 border-r border-b border-[#8C7B6B] h-full" />
+                                  </div>
+                                  <div className="w-0.5 h-1.5 bg-[#8C7B6B]" />
+                                </div>
+                              ) : (
+                                <div className="w-20" />
+                              )}
+
+                              {mmm ? (
+                                <div className="flex flex-col items-center">
+                                  <div className="flex space-x-1">
+                                    <CompactPersonCard
+                                      person={mmmFather}
+                                      roleLabel="A-A-Grand-Père"
+                                      onFocus={(p) => setFocusedPersonId(p.id)}
+                                      onSelect={onSelectPerson}
+                                      onAddRelative={() => onAddRelative(mmm, 'father')}
+                                      emptyLabel="A-A-G-Père"
+                                    />
+                                    <CompactPersonCard
+                                      person={mmmMother}
+                                      roleLabel="A-A-Grand-Mère"
+                                      onFocus={(p) => setFocusedPersonId(p.id)}
+                                      onSelect={onSelectPerson}
+                                      onAddRelative={() => onAddRelative(mmm, 'mother')}
+                                      emptyLabel="A-A-G-Mère"
+                                    />
+                                  </div>
+                                  <div className="w-full flex justify-center h-4 relative mt-0.5">
+                                    <div className="w-1/2 border-l border-b border-[#8C7B6B] h-full" />
+                                    <div className="w-1/2 border-r border-b border-[#8C7B6B] h-full" />
+                                  </div>
+                                  <div className="w-0.5 h-1.5 bg-[#8C7B6B]" />
+                                </div>
+                              ) : (
+                                <div className="w-20" />
+                              )}
+                            </div>
+                          )}
+
+                          {/* Level +3 (Arrière-grands-parents for Maternal Grandmother) */}
+                          {maternalGrandmother && (
+                            <div className="flex flex-col items-center">
+                              <div className="flex space-x-2">
+                                <CompactPersonCard
+                                  person={mmp}
+                                  roleLabel="A-Grand-Père"
+                                  onFocus={(p) => setFocusedPersonId(p.id)}
+                                  onSelect={onSelectPerson}
+                                  onAddRelative={() => onAddRelative(maternalGrandmother, 'father')}
+                                  emptyLabel="A-Grand-Père"
+                                />
+                                <CompactPersonCard
+                                  person={mmm}
+                                  roleLabel="A-Grand-Mère"
+                                  onFocus={(p) => setFocusedPersonId(p.id)}
+                                  onSelect={onSelectPerson}
+                                  onAddRelative={() => onAddRelative(maternalGrandmother, 'mother')}
+                                  emptyLabel="A-Grand-Mère"
+                                />
+                              </div>
+                              <div className="w-full flex justify-center h-4 relative mt-0.5">
+                                <div className="w-1/2 border-l border-b border-[#8C7B6B] h-full" />
+                                <div className="w-1/2 border-r border-b border-[#8C7B6B] h-full" />
+                              </div>
+                              <div className="w-0.5 h-1.5 bg-[#8C7B6B]" />
+                            </div>
+                          )}
+
+                          {/* Level +2 (Maternal Grandmother) */}
+                          <CompactPersonCard
+                            person={maternalGrandmother}
+                            roleLabel="Grand-Mère Mat."
+                            onFocus={(p) => setFocusedPersonId(p.id)}
+                            onSelect={onSelectPerson}
+                            onAddRelative={mother ? () => onAddRelative(mother, 'mother') : undefined}
+                            emptyLabel="Grand-Mère M."
+                          />
+                        </div>
                       </div>
+
                       {/* Lines down to Mother */}
-                      <div className="w-full flex justify-center h-5 relative mt-1">
+                      <div className="w-full flex justify-center h-5 relative mt-2">
                         <div className="w-1/2 border-l-2 border-b-2 border-[#8C7B6B] h-full" />
                         <div className="w-1/2 border-r-2 border-b-2 border-[#8C7B6B] h-full" />
                       </div>
@@ -503,6 +935,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
 
       </div>
     </div>
+  </PersonsContext.Provider>
   );
 };
 
@@ -516,6 +949,40 @@ const CompactPersonCard: React.FC<{
   onAddRelative?: () => void;
   emptyLabel?: string;
 }> = ({ person, roleLabel, isRoot, onFocus, onSelect, onAddRelative, emptyLabel }) => {
+  const allPersons = usePersonsContext();
+  const [showCollat, setShowCollat] = useState(false);
+
+  const collatList = useMemo(() => {
+    if (!allPersons || !person) return [];
+    const sibs = getSiblings(person, allPersons).filter(p => p.showOnTree !== false);
+    const sortedSibs = [...sibs].sort((a, b) => {
+      const dateA = a.birthDate || '9999-12-31';
+      const dateB = b.birthDate || '9999-12-31';
+      return dateA.localeCompare(dateB);
+    });
+
+    return sortedSibs.map(sib => {
+      const childMap = new Map<string, Person>();
+      if (sib.childrenIds) {
+        sib.childrenIds.forEach(id => {
+          const found = allPersons.find(p => p.id === id && p.showOnTree !== false);
+          if (found) childMap.set(found.id, found);
+        });
+      }
+      allPersons.forEach(p => {
+        if ((p.fatherId === sib.id || p.motherId === sib.id) && p.showOnTree !== false) {
+          childMap.set(p.id, p);
+        }
+      });
+      const childList = Array.from(childMap.values()).sort((a, b) => {
+        const dateA = a.birthDate || '9999-12-31';
+        const dateB = b.birthDate || '9999-12-31';
+        return dateA.localeCompare(dateB);
+      });
+      return { sibling: sib, children: childList };
+    });
+  }, [person, allPersons]);
+
   if (!person) {
     return (
       <div className="w-36 sm:w-40 h-[72px] bg-white/70 border border-dashed border-[#D9D2C2] rounded-md p-2 flex flex-col items-center justify-center text-center text-[#8C7B6B] text-[10px] shrink-0">
@@ -594,17 +1061,104 @@ const CompactPersonCard: React.FC<{
         </div>
       </div>
 
-      {/* Bottom row: Lifespan & Kids count */}
+      {/* Bottom row: Lifespan & Kids count & Collaterals button */}
       <div className="mt-1 pt-1 border-t border-[#D9D2C2]/40 flex items-center justify-between text-[9px] font-mono">
         <span className={isRoot ? 'text-[#EFE9DB]/90' : 'text-[#8C7B6B]'}>
           {lifespan}
         </span>
-        {person.childrenIds && person.childrenIds.length > 0 && (
-          <span className={isRoot ? 'text-[#D97706] font-bold' : 'text-[#8C7B6B]'}>
-            {person.childrenIds.length} 👶
-          </span>
-        )}
+        <div className="flex items-center gap-1">
+          {person.childrenIds && person.childrenIds.length > 0 && (
+            <span className={isRoot ? 'text-[#D97706] font-bold' : 'text-[#8C7B6B]'} title="Enfants directs">
+              {person.childrenIds.length} 👶
+            </span>
+          )}
+          {collatList.length > 0 && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setShowCollat(!showCollat); }}
+              className={`flex items-center gap-0.5 px-1 py-0.2 border rounded cursor-pointer text-[8px] font-sans font-bold transition-all ${
+                showCollat 
+                  ? 'bg-[#D97706] border-[#D97706] text-white' 
+                  : isRoot
+                    ? 'bg-[#4A3E32] border-[#EFE9DB]/30 text-[#EFE9DB] hover:bg-[#3D3329] hover:text-white'
+                    : 'bg-[#FDFCF7] border-[#D9D2C2] text-[#5C4D3F] hover:bg-[#F4EFE6]'
+              }`}
+              title="Afficher les frères, sœurs et neveux/nièces"
+            >
+              👥 {collatList.length}
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* Collateral Dropdown */}
+      {showCollat && collatList.length > 0 && (
+        <div 
+          onClick={(e) => e.stopPropagation()}
+          className="absolute left-0 right-0 top-full mt-1.5 bg-[#FAF8F5] border-2 border-[#8C7B6B] text-[#2D2926] rounded-md shadow-lg z-50 p-2 max-h-48 overflow-y-auto space-y-2 text-[10px] animate-in fade-in slide-in-from-top-1 duration-100"
+        >
+          <div className="flex items-center justify-between border-b border-[#D9D2C2] pb-1.5 mb-1">
+            <span className="font-bold text-[#5C4D3F] uppercase tracking-wider text-[8px] flex items-center gap-1">
+              <Users className="h-3 w-3 text-[#D97706]" /> Collatéraux ({collatList.length})
+            </span>
+            <button 
+              onClick={() => setShowCollat(false)}
+              className="text-stone-400 hover:text-stone-700 font-bold px-1 rounded hover:bg-stone-200"
+            >
+              ×
+            </button>
+          </div>
+          
+          {collatList.map(({ sibling, children }) => (
+            <div key={sibling.id} className="border-b border-[#EFE9DB] last:border-b-0 pb-1.5 last:pb-0">
+              {/* Sibling row */}
+              <div 
+                onClick={() => { onFocus?.(sibling); setShowCollat(false); }}
+                className="flex items-center justify-between hover:bg-[#F4EFE6] p-1 rounded cursor-pointer font-bold text-[#2D2926]"
+              >
+                <span className="truncate max-w-[105px] hover:underline">
+                  {sibling.firstName} {sibling.lastName}
+                </span>
+                {onSelect && (
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); onSelect(sibling); setShowCollat(false); }}
+                    title="Voir la fiche complète"
+                    className="text-[#8C7B6B] hover:text-[#D97706] p-0.5"
+                  >
+                    <Info className="h-2.5 w-2.5" />
+                  </button>
+                )}
+              </div>
+
+              {/* Sibling's children (nieces/nephews) */}
+              {children.length > 0 && (
+                <div className="pl-3 mt-1 space-y-1 border-l border-dashed border-[#D9D2C2]">
+                  <p className="text-[7.5px] uppercase font-semibold text-[#8C7B6B] tracking-wide mb-0.5">Enfants :</p>
+                  {children.map(child => (
+                    <div 
+                      key={child.id}
+                      onClick={() => { onFocus?.(child); setShowCollat(false); }}
+                      className="flex items-center justify-between hover:bg-[#F4EFE6] p-0.5 rounded cursor-pointer text-[9.5px] text-[#5C4D3F] italic"
+                    >
+                      <span className="truncate max-w-[95px] hover:underline">
+                        ↳ {child.firstName} {child.lastName}
+                      </span>
+                      {onSelect && (
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); onSelect(child); setShowCollat(false); }}
+                          title="Voir la fiche complète"
+                          className="text-[#8C7B6B] hover:text-[#D97706] p-0.5"
+                        >
+                          <Info className="h-2 w-2" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
