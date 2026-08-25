@@ -29,6 +29,15 @@ interface PersonDetailModalProps {
   onToggleShowOnTree?: (person: Person, showOnTree: boolean) => void;
 }
 
+const formatDateInFrench = (dateStr?: string): string => {
+  if (!dateStr) return '';
+  if (dateStr.length === 10 && dateStr.includes('-')) {
+    const [year, month, day] = dateStr.split('-');
+    return `${day}/${month}/${year}`;
+  }
+  return dateStr;
+};
+
 export const PersonDetailModal: React.FC<PersonDetailModalProps> = ({
   person,
   allPersons,
@@ -163,23 +172,52 @@ export const PersonDetailModal: React.FC<PersonDetailModalProps> = ({
                 </p>
               )}
 
-              <div className="flex flex-wrap items-center gap-4 text-xs text-[#2D2926] mt-2">
-                <span className="flex items-center gap-1.5 font-medium">
-                  <Calendar className="h-4 w-4 text-[#D97706]" />
-                  {getLifespanText(person)}
-                </span>
-
-                {person.birthPlace && (
-                  <span className="flex items-center gap-1.5 text-[#8C7B6B]">
-                    <MapPin className="h-4 w-4 text-[#D97706]" />
-                    Lieu: {person.birthPlace}
+              <div className="mt-3.5 space-y-2 border-l-2 border-[#D97706] pl-3 py-0.5 text-xs text-[#2D2926]">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="font-bold text-[#5C4D3F] min-w-[85px] uppercase tracking-wider text-[10px]">Naissance :</span>
+                  <span className="font-semibold bg-white px-2 py-0.5 border border-[#D9D2C2] rounded-xs text-[#2D2926]">
+                    {person.birthDate ? formatDateInFrench(person.birthDate) : 'Date inconnue'}
                   </span>
-                )}
+                  {person.birthPlace ? (
+                    <span className="text-[#8C7B6B] flex items-center gap-1">
+                      <MapPin className="h-3.5 w-3.5 text-[#D97706] inline" />
+                      à {person.birthPlace}
+                    </span>
+                  ) : (
+                    <span className="text-stone-400 italic">Lieu inconnu</span>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="font-bold text-red-800 min-w-[85px] uppercase tracking-wider text-[10px]">Décès :</span>
+                  {person.isDeceased ? (
+                    <>
+                      <span className="font-semibold bg-white px-2 py-0.5 border border-[#D9D2C2] rounded-xs text-red-800">
+                        {person.deathDate ? formatDateInFrench(person.deathDate) : 'Date inconnue'}
+                      </span>
+                      {person.deathPlace ? (
+                        <span className="text-[#8C7B6B] flex items-center gap-1">
+                          <MapPin className="h-3.5 w-3.5 text-red-600 inline" />
+                          à {person.deathPlace}
+                        </span>
+                      ) : (
+                        <span className="text-stone-400 italic">Lieu inconnu</span>
+                      )}
+                    </>
+                  ) : (
+                    <span className="text-emerald-700 font-extrabold bg-emerald-50 px-2.5 py-0.5 border border-emerald-200 text-[10px] uppercase tracking-wide">
+                      Vivant(e)
+                    </span>
+                  )}
+                </div>
 
                 {person.profession && (
-                  <span className="bg-white text-[#5C4D3F] border border-[#D9D2C2] px-2.5 py-0.5 text-[11px] font-serif italic">
-                    {person.profession}
-                  </span>
+                  <div className="pt-1 flex flex-wrap items-center gap-1.5">
+                    <span className="font-bold text-[#8C7B6B] min-w-[85px] uppercase tracking-wider text-[10px]">Profession :</span>
+                    <span className="bg-white text-[#5C4D3F] border border-[#D9D2C2] px-2.5 py-0.5 text-[11px] font-serif italic">
+                      {person.profession}
+                    </span>
+                  </div>
                 )}
               </div>
             </div>
