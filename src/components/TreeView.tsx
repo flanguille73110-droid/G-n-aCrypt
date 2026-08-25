@@ -68,8 +68,27 @@ export const TreeView: React.FC<TreeViewProps> = ({
   // Direct relatives for central section
   const father = useMemo(() => rootPerson?.fatherId ? persons.find(p => p.id === rootPerson.fatherId && p.showOnTree !== false) : null, [persons, rootPerson]);
   const mother = useMemo(() => rootPerson?.motherId ? persons.find(p => p.id === rootPerson.motherId && p.showOnTree !== false) : null, [persons, rootPerson]);
-  const spouses = useMemo(() => rootPerson?.spouseIds ? persons.filter(p => rootPerson.spouseIds.includes(p.id) && p.showOnTree !== false) : [], [persons, rootPerson]);
-  const siblings = useMemo(() => rootPerson ? getSiblings(rootPerson, persons).filter(p => p.showOnTree !== false) : [], [persons, rootPerson]);
+  const spouses = useMemo(() => {
+    if (!rootPerson?.spouseIds) return [];
+    const s = persons.filter(p => rootPerson.spouseIds.includes(p.id) && p.showOnTree !== false);
+    return [...s].sort((a, b) => {
+      const dateA = a.birthDate || '9999-12-31';
+      const dateB = b.birthDate || '9999-12-31';
+      if (dateA !== dateB) return dateA.localeCompare(dateB);
+      return `${a.lastName} ${a.firstName}`.localeCompare(`${b.lastName} ${b.firstName}`);
+    });
+  }, [persons, rootPerson]);
+
+  const siblings = useMemo(() => {
+    if (!rootPerson) return [];
+    const s = getSiblings(rootPerson, persons).filter(p => p.showOnTree !== false);
+    return [...s].sort((a, b) => {
+      const dateA = a.birthDate || '9999-12-31';
+      const dateB = b.birthDate || '9999-12-31';
+      if (dateA !== dateB) return dateA.localeCompare(dateB);
+      return `${a.lastName} ${a.firstName}`.localeCompare(`${b.lastName} ${b.firstName}`);
+    });
+  }, [persons, rootPerson]);
 
   // Grandparents
   const paternalGrandfather = father?.fatherId ? persons.find(p => p.id === father.fatherId && p.showOnTree !== false) : null;
@@ -92,7 +111,13 @@ export const TreeView: React.FC<TreeViewProps> = ({
         childMap.set(p.id, p);
       }
     });
-    return Array.from(childMap.values());
+    const sortedList = Array.from(childMap.values());
+    return sortedList.sort((a, b) => {
+      const dateA = a.birthDate || '9999-12-31';
+      const dateB = b.birthDate || '9999-12-31';
+      if (dateA !== dateB) return dateA.localeCompare(dateB);
+      return `${a.lastName} ${a.firstName}`.localeCompare(`${b.lastName} ${b.firstName}`);
+    });
   }, [persons, rootPerson]);
 
   const handleZoomIn = () => setZoomLevel(prev => Math.min(prev + 0.15, 1.8));
@@ -598,9 +623,15 @@ const DescendantTreeNode: React.FC<{
   // Spouses of this person
   const spouses = useMemo(() => {
     if (!person.spouseIds || person.spouseIds.length === 0) return [];
-    return person.spouseIds
+    const list = person.spouseIds
       .map(id => allPersons.find(p => p.id === id))
       .filter((p): p is Person => Boolean(p) && !visitedIds.has(p.id) && p.showOnTree !== false);
+    return [...list].sort((a, b) => {
+      const dateA = a.birthDate || '9999-12-31';
+      const dateB = b.birthDate || '9999-12-31';
+      if (dateA !== dateB) return dateA.localeCompare(dateB);
+      return `${a.lastName} ${a.firstName}`.localeCompare(`${b.lastName} ${b.firstName}`);
+    });
   }, [person, allPersons, visitedIds]);
 
   const currentVisited = useMemo(() => {
@@ -636,7 +667,13 @@ const DescendantTreeNode: React.FC<{
       }
     });
 
-    return Array.from(childMap.values());
+    const list = Array.from(childMap.values());
+    return [...list].sort((a, b) => {
+      const dateA = a.birthDate || '9999-12-31';
+      const dateB = b.birthDate || '9999-12-31';
+      if (dateA !== dateB) return dateA.localeCompare(dateB);
+      return `${a.lastName} ${a.firstName}`.localeCompare(`${b.lastName} ${b.firstName}`);
+    });
   }, [person, spouses, allPersons, visitedIds]);
 
   const isFocused = person.id === focusedPersonId;
