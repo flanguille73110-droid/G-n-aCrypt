@@ -385,7 +385,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
                     {spouses.length > 0 && (
                       <div className="flex items-center space-x-2">
                         {spouses.map(sp => (
-                          <React.Fragment key={sp.id}>
+                          <div key={sp.id} className="flex items-center space-x-2">
                             <div className="flex flex-col items-center text-[#D97706] shrink-0">
                               <Heart className="h-4 w-4 fill-[#D97706]/20" />
                               <span className="text-[8px] uppercase font-bold tracking-wider text-[#8C7B6B]">Union</span>
@@ -396,7 +396,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
                               onFocus={(p) => setFocusedPersonId(p.id)}
                               onSelect={onSelectPerson}
                             />
-                          </React.Fragment>
+                          </div>
                         ))}
                       </div>
                     )}
@@ -656,7 +656,7 @@ const DescendantTreeNode: React.FC<{
         {spouses.map(spouse => {
           const spouseRole = spouse.gender === 'F' ? 'Conjointe' : spouse.gender === 'M' ? 'Conjoint' : 'Conjoint(e)';
           return (
-            <React.Fragment key={spouse.id}>
+            <div key={spouse.id} className="flex items-center space-x-2">
               <div className="flex flex-col items-center text-[#D97706] shrink-0">
                 <Heart className="h-4 w-4 fill-[#D97706]/20" />
               </div>
@@ -666,7 +666,7 @@ const DescendantTreeNode: React.FC<{
                 onFocus={onFocus}
                 onSelect={onSelect}
               />
-            </React.Fragment>
+            </div>
           );
         })}
       </div>
