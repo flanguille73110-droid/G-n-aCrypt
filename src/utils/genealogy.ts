@@ -689,6 +689,7 @@ export function generateTimelineEvents(persons: Person[], customEvents: FamilyEv
     const fullName = `${p.firstName} ${p.lastName}`;
 
     if (p.birthDate) {
+      const birthVerb = p.gender === 'F' ? 'Née' : p.gender === 'M' ? 'Né' : 'Né(e)';
       events.push({
         id: `birth-${p.id}`,
         type: 'naissance',
@@ -697,11 +698,12 @@ export function generateTimelineEvents(persons: Person[], customEvents: FamilyEv
         place: p.birthPlace,
         coords: p.birthCoords || lookupCoordinates(p.birthPlace),
         personIds: [p.id],
-        description: `Né(e) à ${p.birthPlace || 'lieu inconnu'}`
+        description: `${birthVerb} à ${p.birthPlace || 'lieu inconnu'}`
       });
     }
 
     if (p.isDeceased && p.deathDate) {
+      const deathVerb = p.gender === 'F' ? 'Décédée' : p.gender === 'M' ? 'Décédé' : 'Décédé(e)';
       events.push({
         id: `death-${p.id}`,
         type: 'deces',
@@ -710,7 +712,7 @@ export function generateTimelineEvents(persons: Person[], customEvents: FamilyEv
         place: p.deathPlace,
         coords: p.deathCoords || lookupCoordinates(p.deathPlace),
         personIds: [p.id],
-        description: `Décédé(e) à ${p.deathPlace || 'lieu inconnu'}`
+        description: `${deathVerb} à ${p.deathPlace || 'lieu inconnu'}`
       });
     }
 
@@ -790,7 +792,8 @@ export function generateTimelineEvents(persons: Person[], customEvents: FamilyEv
 export function getLifespanText(person: Person): string {
   const birthYear = person.birthDate ? person.birthDate.split('-')[0] : '?';
   if (!person.isDeceased) {
-    return `Né(e) en ${birthYear}`;
+    const birthVerb = person.gender === 'F' ? 'Née' : person.gender === 'M' ? 'Né' : 'Né(e)';
+    return `${birthVerb} en ${birthYear}`;
   }
   const deathYear = person.deathDate ? person.deathDate.split('-')[0] : '?';
   return `${birthYear} – ${deathYear}`;
