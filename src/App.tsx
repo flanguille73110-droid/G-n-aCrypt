@@ -498,6 +498,7 @@ export default function App() {
           onSelectPerson={(p) => setSelectedPersonForDetail(p)}
           onAddDocument={handleAddDocumentToPerson}
           onToggleShowOnTree={(p, showOnTree) => handleSavePerson({ ...p, showOnTree })}
+          onUpdatePerson={handleSavePerson}
         />
       )}
 

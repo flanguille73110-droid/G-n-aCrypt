@@ -27,6 +27,7 @@ interface PersonDetailModalProps {
   onSelectPerson: (person: Person) => void;
   onAddDocument: (personId: string, doc: DocumentItem) => void;
   onToggleShowOnTree?: (person: Person, showOnTree: boolean) => void;
+  onUpdatePerson?: (person: Person) => void;
 }
 
 const formatDateInFrench = (dateStr?: string): string => {
@@ -47,6 +48,7 @@ export const PersonDetailModal: React.FC<PersonDetailModalProps> = ({
   onSelectPerson,
   onAddDocument,
   onToggleShowOnTree,
+  onUpdatePerson,
 }) => {
   const [activeTab, setActiveTab] = useState<'profile' | 'gallery' | 'succession'>('profile');
   const [selectedDocImage, setSelectedDocImage] = useState<string | null>(null);
@@ -132,10 +134,27 @@ export const PersonDetailModal: React.FC<PersonDetailModalProps> = ({
             )}
 
             <div className="flex-1">
-              <div className="flex items-center space-x-2 mb-1">
-                <span className="px-2.5 py-0.5 text-[10px] uppercase font-bold tracking-widest bg-white text-[#5C4D3F] border border-[#D9D2C2]">
-                  {person.branch === 'paternal' ? 'Branche Paternelle' : person.branch === 'maternal' ? 'Branche Maternelle' : 'Famille'}
-                </span>
+              <div className="flex flex-wrap items-center gap-2 mb-1">
+                <div className="inline-flex items-center space-x-1.5 bg-white border border-[#D9D2C2] px-2 py-0.5 rounded-xs">
+                  <span className="text-[9px] uppercase font-bold text-[#8C7B6B]">Branche :</span>
+                  <select
+                    value={person.branch}
+                    onChange={(e) => {
+                      const newBranch = e.target.value as any;
+                      if (onUpdatePerson) {
+                        onUpdatePerson({ ...person, branch: newBranch });
+                      } else {
+                        onEdit({ ...person, branch: newBranch });
+                      }
+                    }}
+                    className="bg-transparent text-[#5C4D3F] text-[10px] font-bold uppercase tracking-wider focus:outline-none cursor-pointer pr-1"
+                  >
+                    <option value="paternal">Paternelle</option>
+                    <option value="maternal">Maternelle</option>
+                    <option value="secondary">Secondaire</option>
+                    <option value="inlaw">Belle-famille (Alliés)</option>
+                  </select>
+                </div>
                 {person.gender && (
                   <span className="text-xs text-[#8C7B6B] font-mono">
                     Sexe: {person.gender === 'M' ? 'Masculin' : person.gender === 'F' ? 'Féminin' : 'Autre'}
@@ -154,7 +173,9 @@ export const PersonDetailModal: React.FC<PersonDetailModalProps> = ({
                     checked={person.showOnTree !== false}
                     onChange={(e) => {
                       const val = e.target.checked;
-                      if (onToggleShowOnTree) {
+                      if (onUpdatePerson) {
+                        onUpdatePerson({ ...person, showOnTree: val });
+                      } else if (onToggleShowOnTree) {
                         onToggleShowOnTree(person, val);
                       } else {
                         onEdit({ ...person, showOnTree: val });

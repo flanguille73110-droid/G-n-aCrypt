@@ -1,9 +1,6 @@
-import React, { useState, useMemo, createContext, useContext } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Person, BranchType } from '../types';
 import { getLifespanText, getSiblings, getUnionTypeIcon, getUnionTypeLabel } from '../utils/genealogy';
-
-const PersonsContext = createContext<Person[]>([]);
-export const usePersonsContext = () => useContext(PersonsContext);
 import { 
   ZoomIn, 
   ZoomOut, 
@@ -36,6 +33,8 @@ export const TreeView: React.FC<TreeViewProps> = ({
   const [zoomLevel, setZoomLevel] = useState(1);
   const [focusedPersonId, setFocusedPersonId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'ancestors' | 'descendants' | 'pedigree'>('pedigree');
+  const [plusLevel, setPlusLevel] = useState<'N+1' | 'N+1,+2' | 'N+1,+2,+3'>('N+1,+2,+3');
+  const [minusLevel, setMinusLevel] = useState<'N-1' | 'N-1,-2' | 'N-1,-2,-3'>('N-1,-2,-3');
 
   // Filter persons by branch and search
   const filteredPersons = useMemo(() => {
@@ -170,8 +169,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
   }
 
   return (
-    <PersonsContext.Provider value={persons}>
-      <div className="relative min-h-[calc(100vh-130px)] bg-[#F9F6F0] text-[#2D2926] flex flex-col overflow-hidden font-sans">
+    <div className="relative min-h-[calc(100vh-130px)] bg-[#F9F6F0] text-[#2D2926] flex flex-col overflow-hidden font-sans">
       
       {/* Controls Bar */}
       <div className="bg-[#EFE9DB] border-b border-[#D9D2C2] px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs z-10 shadow-xs">
@@ -192,32 +190,63 @@ export const TreeView: React.FC<TreeViewProps> = ({
           </select>
         </div>
 
-        {/* Center: View Mode Tabs */}
-        <div className="flex items-center space-x-1 bg-white p-1 border border-[#D9D2C2]">
-          <button
-            onClick={() => setViewMode('pedigree')}
-            className={`px-3 py-1 transition font-medium text-xs cursor-pointer ${
-              viewMode === 'pedigree' ? 'bg-[#5C4D3F] text-white' : 'text-[#8C7B6B] hover:text-[#2D2926]'
-            }`}
-          >
-            Vue Arbre Connecté
-          </button>
-          <button
-            onClick={() => setViewMode('ancestors')}
-            className={`px-3 py-1 transition font-medium text-xs cursor-pointer ${
-              viewMode === 'ancestors' ? 'bg-[#5C4D3F] text-white' : 'text-[#8C7B6B] hover:text-[#2D2926]'
-            }`}
-          >
-            Ascendance (Parents)
-          </button>
-          <button
-            onClick={() => setViewMode('descendants')}
-            className={`px-3 py-1 transition font-medium text-xs cursor-pointer ${
-              viewMode === 'descendants' ? 'bg-[#5C4D3F] text-white' : 'text-[#8C7B6B] hover:text-[#2D2926]'
-            }`}
-          >
-            Descendance (Enfants)
-          </button>
+        {/* Center Section: Depth Controls and View Mode Tabs */}
+        <div className="flex items-center space-x-2 flex-wrap justify-center">
+          {/* Level + Selector */}
+          <div className="flex items-center space-x-1 bg-white border border-[#D9D2C2] px-2 py-1">
+            <span className="text-[#8C7B6B] font-bold text-[10px] uppercase tracking-wider">Niveau + :</span>
+            <select
+              value={plusLevel}
+              onChange={(e) => setPlusLevel(e.target.value as any)}
+              className="bg-transparent text-[#2D2926] font-medium text-xs focus:outline-none cursor-pointer pr-1"
+            >
+              <option value="N+1">N+1</option>
+              <option value="N+1,+2">N+1, +2</option>
+              <option value="N+1,+2,+3">N+1, +2, +3</option>
+            </select>
+          </div>
+
+          {/* View Mode Tabs */}
+          <div className="flex items-center space-x-1 bg-white p-1 border border-[#D9D2C2]">
+            <button
+              onClick={() => setViewMode('pedigree')}
+              className={`px-3 py-1 transition font-medium text-xs cursor-pointer ${
+                viewMode === 'pedigree' ? 'bg-[#5C4D3F] text-white' : 'text-[#8C7B6B] hover:text-[#2D2926]'
+              }`}
+            >
+              Vue Arbre Connecté
+            </button>
+            <button
+              onClick={() => setViewMode('ancestors')}
+              className={`px-3 py-1 transition font-medium text-xs cursor-pointer ${
+                viewMode === 'ancestors' ? 'bg-[#5C4D3F] text-white' : 'text-[#8C7B6B] hover:text-[#2D2926]'
+              }`}
+            >
+              Ascendance (Parents)
+            </button>
+            <button
+              onClick={() => setViewMode('descendants')}
+              className={`px-3 py-1 transition font-medium text-xs cursor-pointer ${
+                viewMode === 'descendants' ? 'bg-[#5C4D3F] text-white' : 'text-[#8C7B6B] hover:text-[#2D2926]'
+              }`}
+            >
+              Descendance (Enfants)
+            </button>
+          </div>
+
+          {/* Level - Selector */}
+          <div className="flex items-center space-x-1 bg-white border border-[#D9D2C2] px-2 py-1">
+            <span className="text-[#8C7B6B] font-bold text-[10px] uppercase tracking-wider">Niveau - :</span>
+            <select
+              value={minusLevel}
+              onChange={(e) => setMinusLevel(e.target.value as any)}
+              className="bg-transparent text-[#2D2926] font-medium text-xs focus:outline-none cursor-pointer pr-1"
+            >
+              <option value="N-1">N-1</option>
+              <option value="N-1,-2">N-1, -2</option>
+              <option value="N-1,-2,-3">N-1, -2, -3</option>
+            </select>
+          </div>
         </div>
 
         {/* Right: Zoom Controls */}
@@ -264,15 +293,17 @@ export const TreeView: React.FC<TreeViewProps> = ({
                 <div className="flex flex-col items-center w-full mb-6">
                   
                   {/* Generation -2 to -4: Ancestors */}
-                  <div className="flex items-end space-x-12 sm:space-x-16">
+                  {plusLevel !== 'N+1' && (
+                    <div className="grid grid-cols-2 gap-12 sm:gap-16 w-full relative pb-10">
                     {/* Paternal Side */}
-                    <div className="flex flex-col items-center">
-                      <span className="text-[10px] uppercase font-bold tracking-widest text-[#8C7B6B] mb-3 bg-[#EFE9DB] px-3 py-0.5 border border-[#D9D2C2] rounded-xs shadow-3xs">Branche Paternelle</span>
-                      <div className="flex items-end space-x-8 sm:space-x-12">
+                    <div className="flex flex-col items-center w-full h-full justify-between">
+                      <div className="flex flex-col items-center">
+                        <span className="text-[10px] uppercase font-bold tracking-widest text-[#8C7B6B] mb-3 bg-[#EFE9DB] px-3 py-0.5 border border-[#D9D2C2] rounded-xs shadow-3xs">Branche Paternelle</span>
+                        <div className="flex items-end space-x-8 sm:space-x-12">
                         {/* Paternal Grandfather Subtree */}
                         <div className="flex flex-col items-center">
                           {/* Level +4 (Arrière-arrière-grands-parents for PPP) */}
-                          {(ppp || ppm) && (
+                          {plusLevel === 'N+1,+2,+3' && (ppp || ppm) && (
                             <div className="flex space-x-2 mb-2">
                               {ppp ? (
                                 <div className="flex flex-col items-center">
@@ -337,7 +368,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
                           )}
 
                           {/* Level +3 (Arrière-grands-parents for Paternal Grandfather) */}
-                          {paternalGrandfather && (
+                          {plusLevel === 'N+1,+2,+3' && paternalGrandfather && (
                             <div className="flex flex-col items-center">
                               <div className="flex space-x-2">
                                 <CompactPersonCard
@@ -379,7 +410,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
                         {/* Paternal Grandmother Subtree */}
                         <div className="flex flex-col items-center">
                           {/* Level +4 (Arrière-arrière-grands-parents for PMP) */}
-                          {(pmp || pmm) && (
+                          {plusLevel === 'N+1,+2,+3' && (pmp || pmm) && (
                             <div className="flex space-x-2 mb-2">
                               {pmp ? (
                                 <div className="flex flex-col items-center">
@@ -444,7 +475,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
                           )}
 
                           {/* Level +3 (Arrière-grands-parents for Paternal Grandmother) */}
-                          {paternalGrandmother && (
+                          {plusLevel === 'N+1,+2,+3' && paternalGrandmother && (
                             <div className="flex flex-col items-center">
                               <div className="flex space-x-2">
                                 <CompactPersonCard
@@ -483,23 +514,39 @@ export const TreeView: React.FC<TreeViewProps> = ({
                           />
                         </div>
                       </div>
+                    </div>
 
-                      {/* Lines down to Father */}
-                      <div className="w-full flex justify-center h-5 relative mt-2">
-                        <div className="w-1/2 border-l-2 border-b-2 border-[#8C7B6B] h-full" />
-                        <div className="w-1/2 border-r-2 border-b-2 border-[#8C7B6B] h-full" />
+                    <div className="flex flex-col items-center w-full mt-auto">
+                        {/* Lines down to Father */}
+                        <div className="w-full flex justify-center h-5 relative mt-2">
+                          <div className="w-1/2 border-l-2 border-b-2 border-[#8C7B6B] h-full" />
+                          <div className="w-1/2 border-r-2 border-b-2 border-[#8C7B6B] h-full" />
+                        </div>
+                        <div className="w-0.5 h-4 bg-[#8C7B6B]" />
+
+                        <CompactPersonCard
+                          person={father}
+                          roleLabel="Père"
+                          onFocus={(p) => setFocusedPersonId(p.id)}
+                          onSelect={onSelectPerson}
+                          onAddRelative={() => onAddRelative(rootPerson, 'father')}
+                          emptyLabel="Ajouter Père"
+                        />
+                        
+                        {/* Line extending down under Father card */}
+                        <div className="w-0.5 h-12 bg-[#8C7B6B]" />
                       </div>
-                      <div className="w-0.5 h-4 bg-[#8C7B6B]" />
                     </div>
 
                     {/* Maternal Side */}
-                    <div className="flex flex-col items-center">
-                      <span className="text-[10px] uppercase font-bold tracking-widest text-[#8C7B6B] mb-3 bg-[#EFE9DB] px-3 py-0.5 border border-[#D9D2C2] rounded-xs shadow-3xs">Branche Maternelle</span>
-                      <div className="flex items-end space-x-8 sm:space-x-12">
+                    <div className="flex flex-col items-center w-full h-full justify-between">
+                      <div className="flex flex-col items-center">
+                        <span className="text-[10px] uppercase font-bold tracking-widest text-[#8C7B6B] mb-3 bg-[#EFE9DB] px-3 py-0.5 border border-[#D9D2C2] rounded-xs shadow-3xs">Branche Maternelle</span>
+                        <div className="flex items-end space-x-8 sm:space-x-12">
                         {/* Maternal Grandfather Subtree */}
                         <div className="flex flex-col items-center">
                           {/* Level +4 (Arrière-arrière-grands-parents for MPP) */}
-                          {(mpp || mpm) && (
+                          {plusLevel === 'N+1,+2,+3' && (mpp || mpm) && (
                             <div className="flex space-x-2 mb-2">
                               {mpp ? (
                                 <div className="flex flex-col items-center">
@@ -564,7 +611,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
                           )}
 
                           {/* Level +3 (Arrière-grands-parents for Maternal Grandfather) */}
-                          {maternalGrandfather && (
+                          {plusLevel === 'N+1,+2,+3' && maternalGrandfather && (
                             <div className="flex flex-col items-center">
                               <div className="flex space-x-2">
                                 <CompactPersonCard
@@ -606,7 +653,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
                         {/* Maternal Grandmother Subtree */}
                         <div className="flex flex-col items-center">
                           {/* Level +4 (Arrière-arrière-grands-parents for MMP) */}
-                          {(mmp || mmm) && (
+                          {plusLevel === 'N+1,+2,+3' && (mmp || mmm) && (
                             <div className="flex space-x-2 mb-2">
                               {mmp ? (
                                 <div className="flex flex-col items-center">
@@ -671,7 +718,7 @@ export const TreeView: React.FC<TreeViewProps> = ({
                           )}
 
                           {/* Level +3 (Arrière-grands-parents for Maternal Grandmother) */}
-                          {maternalGrandmother && (
+                          {plusLevel === 'N+1,+2,+3' && maternalGrandmother && (
                             <div className="flex flex-col items-center">
                               <div className="flex space-x-2">
                                 <CompactPersonCard
@@ -710,48 +757,44 @@ export const TreeView: React.FC<TreeViewProps> = ({
                           />
                         </div>
                       </div>
+                    </div>
 
-                      {/* Lines down to Mother */}
-                      <div className="w-full flex justify-center h-5 relative mt-2">
-                        <div className="w-1/2 border-l-2 border-b-2 border-[#8C7B6B] h-full" />
-                        <div className="w-1/2 border-r-2 border-b-2 border-[#8C7B6B] h-full" />
+                    <div className="flex flex-col items-center w-full mt-auto">
+                        {/* Lines down to Mother */}
+                        <div className="w-full flex justify-center h-5 relative mt-2">
+                          <div className="w-1/2 border-l-2 border-b-2 border-[#8C7B6B] h-full" />
+                          <div className="w-1/2 border-r-2 border-b-2 border-[#8C7B6B] h-full" />
+                        </div>
+                        <div className="w-0.5 h-4 bg-[#8C7B6B]" />
+
+                        <CompactPersonCard
+                          person={mother}
+                          roleLabel="Mère"
+                          onFocus={(p) => setFocusedPersonId(p.id)}
+                          onSelect={onSelectPerson}
+                          onAddRelative={() => onAddRelative(rootPerson, 'mother')}
+                          emptyLabel="Ajouter Mère"
+                        />
+                        
+                        {/* Line extending down under Mother card */}
+                        <div className="w-0.5 h-12 bg-[#8C7B6B]" />
                       </div>
-                      <div className="w-0.5 h-4 bg-[#8C7B6B]" />
-                    </div>
-                  </div>
-
-                  {/* Generation -1: Parents */}
-                  <div className="flex items-center space-x-8 sm:space-x-12 mt-1">
-                    <CompactPersonCard
-                      person={father}
-                      roleLabel="Père"
-                      onFocus={(p) => setFocusedPersonId(p.id)}
-                      onSelect={onSelectPerson}
-                      onAddRelative={() => onAddRelative(rootPerson, 'father')}
-                      emptyLabel="Ajouter Père"
-                    />
-
-                    <div className="flex flex-col items-center text-[#8C7B6B]">
-                      <Heart className="h-4 w-4 text-[#D97706] fill-[#D97706]/20" />
-                      <div className="h-4 w-0.5 bg-[#8C7B6B] my-0.5" />
                     </div>
 
-                    <CompactPersonCard
-                      person={mother}
-                      roleLabel="Mère"
-                      onFocus={(p) => setFocusedPersonId(p.id)}
-                      onSelect={onSelectPerson}
-                      onAddRelative={() => onAddRelative(rootPerson, 'mother')}
-                      emptyLabel="Ajouter Mère"
-                    />
+                    {/* Symmetrical horizontal connection line from Center of Father to Center of Mother */}
+                    <div className="absolute bottom-0 left-[25%] right-[25%] h-0.5 bg-[#8C7B6B] pointer-events-none" />
+                    
+                    {/* Heart & Union connector in the exact center */}
+                    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none">
+                      <div className="absolute bottom-[-10px] flex flex-col items-center">
+                        <Heart className="h-5 w-5 text-[#D97706] fill-[#D97706]/20 bg-[#F5F2EB] rounded-full p-0.5 border border-[#D9D2C2]" />
+                      </div>
+                    </div>
                   </div>
+                  )}
 
-                  {/* Lines down to Central Person */}
-                  <div className="w-36 flex justify-center h-5 relative mt-1">
-                    <div className="w-1/2 border-l-2 border-b-2 border-[#8C7B6B] h-full" />
-                    <div className="w-1/2 border-r-2 border-b-2 border-[#8C7B6B] h-full" />
-                  </div>
-                  <div className="w-0.5 h-5 bg-[#8C7B6B]" />
+                  {/* Line down to Central Person */}
+                  <div className="w-0.5 h-24 bg-[#8C7B6B]" />
 
                 </div>
               )}
@@ -841,20 +884,45 @@ export const TreeView: React.FC<TreeViewProps> = ({
                     {/* Spouses rendered next to Root */}
                     {spouses.length > 0 && (
                       <div className="flex items-center space-x-2">
-                        {spouses.map(sp => (
-                          <div key={sp.id} className="flex items-center space-x-2">
-                            <div className="flex flex-col items-center text-[#D97706] shrink-0">
-                              <Heart className="h-4 w-4 fill-[#D97706]/20" />
-                              <span className="text-[8px] uppercase font-bold tracking-wider text-[#8C7B6B]">Union</span>
+                        {spouses.map(sp => {
+                          const spouseSiblings = getSiblings(sp, persons)
+                            .filter(p => p.showOnTree !== false)
+                            .sort((a, b) => {
+                              const dateA = a.birthDate || '9999-12-31';
+                              const dateB = b.birthDate || '9999-12-31';
+                              if (dateA !== dateB) return dateA.localeCompare(dateB);
+                              return `${a.lastName} ${a.firstName}`.localeCompare(`${b.lastName} ${b.firstName}`);
+                            });
+
+                          return (
+                            <div key={sp.id} className="flex items-center space-x-3">
+                              <div className="flex flex-col items-center text-[#D97706] shrink-0">
+                                <Heart className="h-4 w-4 fill-[#D97706]/20" />
+                                <span className="text-[8px] uppercase font-bold tracking-wider text-[#8C7B6B]">Union</span>
+                              </div>
+                              <CompactPersonCard
+                                person={sp}
+                                roleLabel={sp.gender === 'F' ? 'Conjointe' : 'Conjoint'}
+                                onFocus={(p) => setFocusedPersonId(p.id)}
+                                onSelect={onSelectPerson}
+                              />
+                              {spouseSiblings.length > 0 && (
+                                <div id={`spouse-siblings-${sp.id}`} className="flex flex-col space-y-2 pl-4 border-l border-[#D9D2C2]">
+                                  <span className="text-[9px] text-[#8C7B6B] font-bold uppercase tracking-wider">Frères & Sœurs</span>
+                                  {spouseSiblings.map(sib => (
+                                    <CompactPersonCard
+                                      key={sib.id}
+                                      person={sib}
+                                      roleLabel="Frère/Sœur"
+                                      onFocus={(p) => setFocusedPersonId(p.id)}
+                                      onSelect={onSelectPerson}
+                                    />
+                                  ))}
+                                </div>
+                              )}
                             </div>
-                            <CompactPersonCard
-                              person={sp}
-                              roleLabel={sp.gender === 'F' ? 'Conjointe' : 'Conjoint'}
-                              onFocus={(p) => setFocusedPersonId(p.id)}
-                              onSelect={onSelectPerson}
-                            />
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
 
@@ -919,6 +987,8 @@ export const TreeView: React.FC<TreeViewProps> = ({
                               onAddChild={(p) => onAddRelative(p, 'child')}
                               visitedIds={new Set([rootPerson.id])}
                               roleLabel="Enfant"
+                              depth={1}
+                              minusLevel={minusLevel}
                             />
                           </div>
                         );
@@ -935,7 +1005,6 @@ export const TreeView: React.FC<TreeViewProps> = ({
 
       </div>
     </div>
-  </PersonsContext.Provider>
   );
 };
 
@@ -949,40 +1018,6 @@ const CompactPersonCard: React.FC<{
   onAddRelative?: () => void;
   emptyLabel?: string;
 }> = ({ person, roleLabel, isRoot, onFocus, onSelect, onAddRelative, emptyLabel }) => {
-  const allPersons = usePersonsContext();
-  const [showCollat, setShowCollat] = useState(false);
-
-  const collatList = useMemo(() => {
-    if (!allPersons || !person) return [];
-    const sibs = getSiblings(person, allPersons).filter(p => p.showOnTree !== false);
-    const sortedSibs = [...sibs].sort((a, b) => {
-      const dateA = a.birthDate || '9999-12-31';
-      const dateB = b.birthDate || '9999-12-31';
-      return dateA.localeCompare(dateB);
-    });
-
-    return sortedSibs.map(sib => {
-      const childMap = new Map<string, Person>();
-      if (sib.childrenIds) {
-        sib.childrenIds.forEach(id => {
-          const found = allPersons.find(p => p.id === id && p.showOnTree !== false);
-          if (found) childMap.set(found.id, found);
-        });
-      }
-      allPersons.forEach(p => {
-        if ((p.fatherId === sib.id || p.motherId === sib.id) && p.showOnTree !== false) {
-          childMap.set(p.id, p);
-        }
-      });
-      const childList = Array.from(childMap.values()).sort((a, b) => {
-        const dateA = a.birthDate || '9999-12-31';
-        const dateB = b.birthDate || '9999-12-31';
-        return dateA.localeCompare(dateB);
-      });
-      return { sibling: sib, children: childList };
-    });
-  }, [person, allPersons]);
-
   if (!person) {
     return (
       <div className="w-36 sm:w-40 h-[72px] bg-white/70 border border-dashed border-[#D9D2C2] rounded-md p-2 flex flex-col items-center justify-center text-center text-[#8C7B6B] text-[10px] shrink-0">
@@ -1061,104 +1096,17 @@ const CompactPersonCard: React.FC<{
         </div>
       </div>
 
-      {/* Bottom row: Lifespan & Kids count & Collaterals button */}
+      {/* Bottom row: Lifespan & Kids count */}
       <div className="mt-1 pt-1 border-t border-[#D9D2C2]/40 flex items-center justify-between text-[9px] font-mono">
         <span className={isRoot ? 'text-[#EFE9DB]/90' : 'text-[#8C7B6B]'}>
           {lifespan}
         </span>
-        <div className="flex items-center gap-1">
-          {person.childrenIds && person.childrenIds.length > 0 && (
-            <span className={isRoot ? 'text-[#D97706] font-bold' : 'text-[#8C7B6B]'} title="Enfants directs">
-              {person.childrenIds.length} 👶
-            </span>
-          )}
-          {collatList.length > 0 && (
-            <button
-              onClick={(e) => { e.stopPropagation(); setShowCollat(!showCollat); }}
-              className={`flex items-center gap-0.5 px-1 py-0.2 border rounded cursor-pointer text-[8px] font-sans font-bold transition-all ${
-                showCollat 
-                  ? 'bg-[#D97706] border-[#D97706] text-white' 
-                  : isRoot
-                    ? 'bg-[#4A3E32] border-[#EFE9DB]/30 text-[#EFE9DB] hover:bg-[#3D3329] hover:text-white'
-                    : 'bg-[#FDFCF7] border-[#D9D2C2] text-[#5C4D3F] hover:bg-[#F4EFE6]'
-              }`}
-              title="Afficher les frères, sœurs et neveux/nièces"
-            >
-              👥 {collatList.length}
-            </button>
-          )}
-        </div>
+        {person.childrenIds && person.childrenIds.length > 0 && (
+          <span className={isRoot ? 'text-[#D97706] font-bold' : 'text-[#8C7B6B]'}>
+            {person.childrenIds.length} 👶
+          </span>
+        )}
       </div>
-
-      {/* Collateral Dropdown */}
-      {showCollat && collatList.length > 0 && (
-        <div 
-          onClick={(e) => e.stopPropagation()}
-          className="absolute left-0 right-0 top-full mt-1.5 bg-[#FAF8F5] border-2 border-[#8C7B6B] text-[#2D2926] rounded-md shadow-lg z-50 p-2 max-h-48 overflow-y-auto space-y-2 text-[10px] animate-in fade-in slide-in-from-top-1 duration-100"
-        >
-          <div className="flex items-center justify-between border-b border-[#D9D2C2] pb-1.5 mb-1">
-            <span className="font-bold text-[#5C4D3F] uppercase tracking-wider text-[8px] flex items-center gap-1">
-              <Users className="h-3 w-3 text-[#D97706]" /> Collatéraux ({collatList.length})
-            </span>
-            <button 
-              onClick={() => setShowCollat(false)}
-              className="text-stone-400 hover:text-stone-700 font-bold px-1 rounded hover:bg-stone-200"
-            >
-              ×
-            </button>
-          </div>
-          
-          {collatList.map(({ sibling, children }) => (
-            <div key={sibling.id} className="border-b border-[#EFE9DB] last:border-b-0 pb-1.5 last:pb-0">
-              {/* Sibling row */}
-              <div 
-                onClick={() => { onFocus?.(sibling); setShowCollat(false); }}
-                className="flex items-center justify-between hover:bg-[#F4EFE6] p-1 rounded cursor-pointer font-bold text-[#2D2926]"
-              >
-                <span className="truncate max-w-[105px] hover:underline">
-                  {sibling.firstName} {sibling.lastName}
-                </span>
-                {onSelect && (
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); onSelect(sibling); setShowCollat(false); }}
-                    title="Voir la fiche complète"
-                    className="text-[#8C7B6B] hover:text-[#D97706] p-0.5"
-                  >
-                    <Info className="h-2.5 w-2.5" />
-                  </button>
-                )}
-              </div>
-
-              {/* Sibling's children (nieces/nephews) */}
-              {children.length > 0 && (
-                <div className="pl-3 mt-1 space-y-1 border-l border-dashed border-[#D9D2C2]">
-                  <p className="text-[7.5px] uppercase font-semibold text-[#8C7B6B] tracking-wide mb-0.5">Enfants :</p>
-                  {children.map(child => (
-                    <div 
-                      key={child.id}
-                      onClick={() => { onFocus?.(child); setShowCollat(false); }}
-                      className="flex items-center justify-between hover:bg-[#F4EFE6] p-0.5 rounded cursor-pointer text-[9.5px] text-[#5C4D3F] italic"
-                    >
-                      <span className="truncate max-w-[95px] hover:underline">
-                        ↳ {child.firstName} {child.lastName}
-                      </span>
-                      {onSelect && (
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); onSelect(child); setShowCollat(false); }}
-                          title="Voir la fiche complète"
-                          className="text-[#8C7B6B] hover:text-[#D97706] p-0.5"
-                        >
-                          <Info className="h-2 w-2" />
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 };
@@ -1173,7 +1121,20 @@ const DescendantTreeNode: React.FC<{
   onAddChild?: (p: Person) => void;
   visitedIds: Set<string>;
   roleLabel?: string;
-}> = ({ person, allPersons, focusedPersonId, onFocus, onSelect, onAddChild, visitedIds, roleLabel }) => {
+  depth?: number;
+  minusLevel?: 'N-1' | 'N-1,-2' | 'N-1,-2,-3';
+}> = ({ 
+  person, 
+  allPersons, 
+  focusedPersonId, 
+  onFocus, 
+  onSelect, 
+  onAddChild, 
+  visitedIds, 
+  roleLabel,
+  depth = 1,
+  minusLevel = 'N-1,-2,-3'
+}) => {
   // Spouses of this person
   const spouses = useMemo(() => {
     if (!person.spouseIds || person.spouseIds.length === 0) return [];
@@ -1232,6 +1193,16 @@ const DescendantTreeNode: React.FC<{
 
   const isFocused = person.id === focusedPersonId;
 
+  const shouldRenderChildren = useMemo(() => {
+    if (minusLevel === 'N-1') {
+      return depth < 1;
+    }
+    if (minusLevel === 'N-1,-2') {
+      return depth < 2;
+    }
+    return depth < 3;
+  }, [depth, minusLevel]);
+
   return (
     <div className="flex flex-col items-center">
       {/* Person & Spouses Couple Block */}
@@ -1263,7 +1234,7 @@ const DescendantTreeNode: React.FC<{
       </div>
 
       {/* Children Connector Lines & Recursive Children */}
-      {children.length > 0 && (
+      {shouldRenderChildren && children.length > 0 && (
         <div className="flex flex-col items-center w-full">
           {/* Vertical drop line down from parent/couple */}
           <div className="w-0.5 h-5 bg-[#8C7B6B]" />
@@ -1299,6 +1270,8 @@ const DescendantTreeNode: React.FC<{
                     onAddChild={onAddChild}
                     visitedIds={currentVisited}
                     roleLabel="Enfant"
+                    depth={depth + 1}
+                    minusLevel={minusLevel}
                   />
                 </div>
               );
